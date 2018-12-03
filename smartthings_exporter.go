@@ -1,16 +1,20 @@
-// SmartThings sensor data exporter for prometheus
+// Copyright © 2018 Joel Baranick <jbaranick@gmail.com>
 //
-// This is a simple SmartThings exporter for Prometheus collector.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// Check the README.md for installation instructions.
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
-// http://github.com/kadaan/smartthings_exporter
-// (C) 2018 by Joel Baranick <jbaranick@gmail.com>
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Based on:
 // http://github.com/marcopaganini/smartcollector
 // (C) 2016 by Marco Paganini <paganini@paganini.net>
-
 
 package main
 
@@ -21,7 +25,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	plog "github.com/prometheus/common/log"
 	"github.com/prometheus/common/version"
-	"github.com/rcrowley/go-metrics"
 	"golang.org/x/net/context"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"net/http"
@@ -35,21 +38,34 @@ const (
 )
 
 var (
-	alarmState                         *prometheus.Desc
-	battery                            *prometheus.Desc
-	carbonMonoxide                     *prometheus.Desc
-	contact                            *prometheus.Desc
-	energy                             *prometheus.Desc
-	motion                             *prometheus.Desc
-	power                              *prometheus.Desc
-	presence                           *prometheus.Desc
-	smoke                              *prometheus.Desc
-    smartSwitch                        *prometheus.Desc
-    temperature                        *prometheus.Desc
-	valOpenClosed       = []string{"open", "closed"}
-	valInactiveActive   = []string{"inactive", "active"}
-	valAbsentPresent    = []string{"not present", "present"}
-	valOffOn            = []string{"off", "on"}
+	alarmState        *prometheus.Desc
+	battery           *prometheus.Desc
+	carbonMonoxide    *prometheus.Desc
+	contact           *prometheus.Desc
+	energy            *prometheus.Desc
+	motion            *prometheus.Desc
+	power             *prometheus.Desc
+	presence          *prometheus.Desc
+	smoke             *prometheus.Desc
+	smartSwitch       *prometheus.Desc
+	temperature       *prometheus.Desc
+	valOpenClosed     = []string{"open", "closed"}
+	valInactiveActive = []string{"inactive", "active"}
+	valAbsentPresent  = []string{"not present", "present"}
+	valOffOn          = []string{"off", "on"}
+	mappingFunctions  = map[string]func(interface{}) (*prometheus.Desc, float64, error){
+		"alarmState":     getAlarmState,
+		"battery":        getBattery,
+		"carbonMonoxide": getCarbonMonoxide,
+		"contact":        getContact,
+		"energy":         getEnergy,
+		"motion":         getMotion,
+		"power":          getPower,
+		"presence":       getPresence,
+		"smoke":          getSmoke,
+		"switch":         getSwitch,
+		"temperature":    getTemperature,
+	}
 )
 
 // Exporter collects smartthings stats and exports them using the prometheus metrics package.
@@ -84,8 +100,8 @@ func NewExporter(oauthClient string, oauthSecret string) (*Exporter, error) {
 
 	// Init our exporter.
 	return &Exporter{
-		client:          client,
-		endpoint:        endpoint,
+		client:   client,
+		endpoint: endpoint,
 	}, nil
 }
 
@@ -119,47 +135,13 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 			if val == nil {
 				val = ""
 			}
-			var value       float64
-			var metricDesc  *prometheus.Desc
-			switch k {
-			case "alarmState":
-				value, err = valueClear(val)
-				metricDesc = alarmState
-			case "battery":
-				value, err = valueFloat(val)
-				metricDesc = battery
-			case "carbonMonoxide":
-				value, err = valueClear(val)
-				metricDesc = carbonMonoxide
-			case "contact":
-				value, err = valueOneOf(val, valOpenClosed)
-				metricDesc = contact
-			case "energy":
-				value, err = valueFloat(val)
-				metricDesc = energy
-			case "motion":
-				value, err = valueOneOf(val, valInactiveActive)
-				metricDesc = motion
-			case "power":
-				value, err = valueFloat(val)
-				metricDesc = power
-			case "presence":
-				value, err = valueOneOf(val, valAbsentPresent)
-				metricDesc = presence
-			case "smoke":
-				value, err = valueClear(val)
-				metricDesc = smoke
-			case "switch":
-				value, err = valueOneOf(val, valOffOn)
-				metricDesc = smartSwitch
-			case "temperature":
-				value, err = valueFloat(val)
-				metricDesc = temperature
-			default:
-				// We only process keys we know about.
+			var value float64
+			var metricDesc *prometheus.Desc
+			mappingFunction := mappingFunctions[k]
+			if mappingFunction == nil {
 				continue
 			}
-
+			metricDesc, value, err = mappingFunction(val)
 			if err == nil {
 				ch <- prometheus.MustNewConstMetric(metricDesc, prometheus.GaugeValue, value, dev.ID, dev.DisplayName)
 			} else {
@@ -167,6 +149,61 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 			}
 		}
 	}
+}
+
+func getAlarmState(val interface{}) (*prometheus.Desc, float64, error) {
+	value, err := valueFloat(val)
+	return battery, value, err
+}
+
+func getBattery(val interface{}) (*prometheus.Desc, float64, error) {
+	value, err := valueClear(val)
+	return alarmState, value, err
+}
+
+func getCarbonMonoxide(val interface{}) (*prometheus.Desc, float64, error) {
+	value, err := valueClear(val)
+	return carbonMonoxide, value, err
+}
+
+func getContact(val interface{}) (*prometheus.Desc, float64, error) {
+	value, err := valueOneOf(val, valOpenClosed)
+	return contact, value, err
+}
+
+func getEnergy(val interface{}) (*prometheus.Desc, float64, error) {
+	value, err := valueFloat(val)
+	return energy, value, err
+}
+
+func getMotion(val interface{}) (*prometheus.Desc, float64, error) {
+	value, err := valueOneOf(val, valInactiveActive)
+	return motion, value, err
+}
+
+func getPower(val interface{}) (*prometheus.Desc, float64, error) {
+	value, err := valueFloat(val)
+	return power, value, err
+}
+
+func getPresence(val interface{}) (*prometheus.Desc, float64, error) {
+	value, err := valueOneOf(val, valAbsentPresent)
+	return presence, value, err
+}
+
+func getSmoke(val interface{}) (*prometheus.Desc, float64, error) {
+	value, err := valueClear(val)
+	return smoke, value, err
+}
+
+func getSwitch(val interface{}) (*prometheus.Desc, float64, error) {
+	value, err := valueOneOf(val, valOffOn)
+	return smartSwitch, value, err
+}
+
+func getTemperature(val interface{}) (*prometheus.Desc, float64, error) {
+	value, err := valueFloat(val)
+	return temperature, value, err
 }
 
 // valueClear expects a string and returns 0 for "clear", 1 for anything else.
@@ -221,7 +258,6 @@ func tokenFilename(oauthClient string) string {
 }
 
 func init() {
-	metrics.UseNilMetrics = true
 	prometheus.MustRegister(version.NewCollector("smartthings_exporter"))
 }
 
@@ -238,10 +274,10 @@ func main() {
 	application := kingpin.New("smartthings_exporter", "Smartthings exporter for Prometheus")
 	smartthingsOAuthSecretFlag := application.Flag("smartthings.oauth-secret", "Smartthings OAuth secret key.").Default("")
 	var (
-		listenAddress            = application.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9499").String()
-		metricsPath              = application.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
-		smartthingsOAuthClient   = application.Flag("smartthings.oauth-client", "Smartthings OAuth client ID.").Required().String()
-		smartthingsOAuthSecret   = smartthingsOAuthSecretFlag.String()
+		listenAddress          = application.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9499").String()
+		metricsPath            = application.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
+		smartthingsOAuthClient = application.Flag("smartthings.oauth-client", "Smartthings OAuth client ID.").Required().String()
+		smartthingsOAuthSecret = smartthingsOAuthSecretFlag.String()
 	)
 
 	plog.AddFlags(application)
