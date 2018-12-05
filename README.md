@@ -32,7 +32,7 @@ We now need to register Smartthings_exporter to with your Smartthings app.
 Run:
 
 ```
-$ smartthings_exporter register --smartthings.oauth-client=[client_id] --smartthings.oauth-secret==[client_secret] > .st_token
+$ smartthings_exporter register --smartthings.oauth-client=[client_id] > .st_token
 ```
 
 Follow the prompts to authorize the app.

@@ -26,12 +26,14 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	plog "github.com/prometheus/common/log"
 	"github.com/prometheus/common/version"
+	"golang.org/x/crypto/ssh/terminal"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"net/http"
 	"os"
 	"path/filepath"
+	"syscall"
 )
 
 const (
@@ -44,7 +46,6 @@ var (
 	registerCommand        *kingpin.CmdClause
 	registerPort           *uint16
 	registerOAuthClient    *string
-	registerOAuthSecret    *string
 	registerOAuthTokenFile **os.File
 
 	monitorCommand        *kingpin.CmdClause
@@ -250,7 +251,6 @@ func init() {
 	registerCommand = application.Command("register", "Register smartthings_exporter with Smartthings and outputs the token.").Action(register)
 	registerPort = registerCommand.Flag("register.listen-port", "The port to listen on for the OAuth register.").Default("4567").Uint16()
 	registerOAuthClient = registerCommand.Flag("smartthings.oauth-client", "Smartthings OAuth client ID.").Required().String()
-	registerOAuthSecret = registerCommand.Flag("smartthings.oauth-secret", "Smartthings OAuth secret key.").Required().String()
 
 	monitorCommand = application.Command("start", "Start the smartthings_exporter.").Default().Action(monitor)
 	listenAddress = monitorCommand.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9499").String()
@@ -271,7 +271,14 @@ func main() {
 
 func register(_ *kingpin.ParseContext) error {
 	_, _ = fmt.Fprintln(os.Stderr, "Registering smartthings_exporter with Smartthings")
-	config := gosmart.NewOAuthConfig(*registerOAuthClient, *registerOAuthSecret)
+	_, _ = fmt.Fprintln(os.Stderr, "Enter your Smartthings OAuth secret:")
+	bytes, err := terminal.ReadPassword(int(syscall.Stdin))
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, "Failed to get Smartthings OAuth secret.")
+		return err
+	}
+
+	config := gosmart.NewOAuthConfig(*registerOAuthClient, string(bytes))
 	gst, err := gosmart.NewAuth(int(*registerPort), config)
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, "Failed to create Smartthings OAuth client.")
