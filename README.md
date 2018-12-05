@@ -1,42 +1,46 @@
 # smarthings_exporter [![Build Status](https://travis-ci.org/kadaan/smartthings_exporter.svg?branch=master)](https://travis-ci.org/kadaan/smartthings_exporter) [![Coverage Status](https://img.shields.io/coveralls/github/kadaan/smartthings_exporter/master.svg)](https://coveralls.io/github/kadaan/smartthings_exporter) [![Go Report Card](https://goreportcard.com/badge/github.com/kadaan/smartthings_exporter)](https://goreportcard.com/report/github.com/kadaan/smartthings_exporter)
 
-smartthings_exporter is a command line tool to export information about your SmartThings
-sensors in a format that can be scraped by [Prometheus](http://prometheus.io). The tool uses the [GoSmart](http://github.com/marcopaganini/gosmart) library to talk to SmartThings and collect sensor data and exposed the metrics over http.
+Smartthings_exporter is a command line tool to export information about your SmartThings
+sensors in a format that can be scraped by [Prometheus](http://prometheus.io). The tool uses 
+the [GoSmart](http://github.com/marcopaganini/gosmart) library to talk to SmartThings and collect 
+sensor data and exposed the metrics over http.
 
 ## Installation
 
 The installation instructions assume a properly installed and configured Go
 development environment. The very first step is to download and build
-smartthings_exporter (this step will also download and compile the GoSmart library):
+Smartthings_exporter (this step will also download and compile the GoSmart library):
 
 
 ```
 $ go get -u github.com/kadaan/smartthings_exporter
 ```
 
-### GoSmart configuration
+### Smartthings Setup
 
-Before we can use smartthings_exporter, we need to configure GoSmart. Follow the
-[GoSmart installation instructions](https://github.com/kadaan/gosmart#installation)
-carefully, making sure all steps have been followed.
+Before you can use Smartthings_exporter, you need to register it with Smartthings.  
 
-With GoSmart configured,
-[Follow the instructions](https://github.com/kadaan/gosmart#running-an-example) to
-run the simple example that comes with GoSmart. Make sure the example displays
-a list of your sensors on the screen.
+The first step is to setup the API that Smartthings_exporter uses to communicate with Smartthings.  Follow the 
+[GoSmart Smartthings API setup](https://github.com/kadaan/gosmart#smartthings-api-setup) steps.
 
-### smartthings_exporter configuration
+Take note of the `client_id` and `client_secret` of your SmartThings app that you just created.
 
-We now need to authorize smartthings_exporter to access your Smartthings app. Take note of the `client_id` and `client_secret` of your SmartThings app (used when running the simple example above). Run:
+### Smartthings_exporter configuration
+
+We now need to register Smartthings_exporter to with your Smartthings app.
+
+Run:
 
 ```
-$ smartthings_exporter --smartthings.oauth-client=<client> --smartthings.oauth-secret=<secret>
+$ smartthings_exporter register --smartthings.oauth-client=[client_id] --smartthings.oauth-secret==[client_secret] > .st_token
 ```
 
 Follow the prompts to authorize the app.
 
-smartthings_exporter will write a file with your credentials to executable directory. After the first run, only the `--smartthings.oauth-client` is required to run smartthings_exporter:
+## Running
+
+Now we can start Smartthings_exporter by running:
 
 ```
-$ smartthings_exporter --smartthings.oauth-client=<client_id>
+$ smartthings_exporter --smartthings.oauth-client=<client_id> --smartthings.oauth-token.file=.sttoken
 ```
