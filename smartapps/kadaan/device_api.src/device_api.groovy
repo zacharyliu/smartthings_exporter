@@ -17,6 +17,10 @@
 
 import groovy.json.JsonBuilder
 
+public static String version() { return "v0.0.1" }
+private static String handle() { return "Device API" }
+
+
 definition(
   name: "${handle()}",
   namespace: "kadaan",
@@ -25,22 +29,10 @@ definition(
   category: "My Apps",
   iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
   iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
-  oauth: [displayName: "Device API", displayLink: ""])
+  oauth: [displayName: "${handle()}", displayLink: ""])
 
 preferences {
   page(name: "pageSettings")
-}
-
-def installed() {
-  initialize()
-}
-
-def updated() {
-  unsubscribe()
-  initialize()
-}
-
-def initialize() {
 }
 
 mappings {
