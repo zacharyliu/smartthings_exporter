@@ -19,6 +19,8 @@
       "appSettings": {},
       "version": "0.0.2",
       "appUrl": "smartapps/kadaan/smartthings_exporter_api.src/smartthings_exporter_api.groovy"
-    }
-  }
+    },
+    "children": []
+  },
+  "deviceHandlers": []
 }
