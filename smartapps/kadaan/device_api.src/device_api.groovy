@@ -35,6 +35,18 @@ preferences {
   page(name: "pageSettings")
 }
 
+def installed() {
+  initialize()
+}
+
+def updated() {
+  unsubscribe()
+  initialize()
+}
+
+def initialize() {
+}
+
 mappings {
     path("/devices") {
         action: [
