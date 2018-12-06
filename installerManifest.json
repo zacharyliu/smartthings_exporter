@@ -3,9 +3,9 @@
   "repoOwner": "kadaan",
   "repoName": "smartthings_exporter",
   "repoBranch": "master",
-  "name": "smartthings_exporter API",
+  "name": "Device API",
   "author": "Joel Baranick",
-  "description": "Web enabled Community's own Rule Engine",
+  "description": "Device API used by smartthings_exporter to pull device information",
   "category": "My Apps",
   "videoUrl": "",
   "photoUrl": "",
@@ -18,7 +18,7 @@
       "oAuth": true,
       "appSettings": {},
       "version": "0.0.2",
-      "appUrl": "smartapps/kadaan/smartthings_exporter_api.src/smartthings_exporter_api.groovy"
+      "appUrl": "smartapps/kadaan/device_api.src/device_api.groovy"
     },
     "children": []
   },

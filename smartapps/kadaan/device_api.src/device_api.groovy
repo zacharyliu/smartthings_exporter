@@ -18,15 +18,14 @@
 import groovy.json.JsonBuilder
 
 definition(
-  name: "${handle()} API",
+  name: "${handle()}",
   namespace: "kadaan",
   author: "Joel Baranick",
   description: "Tap here to install ${handle()} ${version()}",
-  parent: "kadaan:${handle()}",
   category: "My Apps",
   iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
   iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
-  oauth: [displayName: "smartthings_exporter API", displayLink: ""])
+  oauth: [displayName: "Device API", displayLink: ""])
 
 preferences {
   page(name: "pageSettings")
@@ -79,7 +78,7 @@ def pageSettings() {
     //clear devices cache
   dynamicPage(name: "pageSettings", title: "", install: false, uninstall: false) {
     section("Available devices") {
-      href "pageSelectDevices", title: "Available devices", description: "Tap here to select which devices are available to smartthings_exporter"
+      href "pageSelectDevices", title: "Available devices", description: "Tap here to select which devices are available to be returned by the API"
     }
   }
 }
@@ -88,7 +87,7 @@ private pageSelectDevices() {
   state.deviceVersion = now().toString()
     dynamicPage(name: "pageSelectDevices", title: "") {
     section() {
-      paragraph "Select the devices you want smartthings_exporter to have access to."
+      paragraph "Select the devices you want API to have access to."
     }
     section ('Select devices by type') {
       paragraph "Most devices should fall into one of these two categories"
