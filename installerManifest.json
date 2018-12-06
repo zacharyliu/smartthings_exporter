@@ -1,0 +1,24 @@
+{
+  "namespace": "kadaan",
+  "repoOwner": "kadaan",
+  "repoName": "smartthings_exporter",
+  "repoBranch": "master",
+  "name": "smartthings_exporter API",
+  "author": "Joel Baranick",
+  "description": "Web enabled Community's own Rule Engine",
+  "category": "My Apps",
+  "videoUrl": "",
+  "photoUrl": "",
+  "bannerUrl": "",
+  "smartApps": {
+    "parent": {
+      "name": "API",
+      "iconUrl": "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
+      "published": true,
+      "oAuth": true,
+      "appSettings": {},
+      "version": "0.0.2",
+      "appUrl": "smartapps/kadaan/smartthings_exporter_api.src/smartthings_exporter_api.groovy"
+    }
+  }
+}
