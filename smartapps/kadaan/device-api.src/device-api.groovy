@@ -48,38 +48,38 @@ def initialize() {
 }
 
 mappings {
-    path("/devices") {
-        action: [
-            GET: "listDevices"
-        ]
-    }
+  path("/devices") {
+    action: [
+      GET: "listDevices"
+    ]
+  }
 }
 
 def listDevices() {
-    result << allDevices.collect{deviceItem(it)}
-    log.debug "Returning DEVICES: $result"
-    result[0]
+  result << allDevices.collect{deviceItem(it)}
+  log.debug "Returning DEVICES: $result"
+  result[0]
 }
 
 private deviceItem(device) {
-    if (!device) return null
-    def results = [:]
-    ["id", "name", "displayName"].each {
-        results << [(it) : device."$it"]
-    }
+  if (!device) return null
+  def results = [:]
+  ["id", "name", "displayName"].each {
+    results << [(it) : device."$it"]
+  }
 
-    def attrsAndVals = [:]
-    device.supportedAttributes?.each {
-        attrsAndVals << [(it.name) : device.currentValue(it.name)]
-    }
+  def attrsAndVals = [:]
+  device.supportedAttributes?.each {
+    attrsAndVals << [(it.name) : device.currentValue(it.name)]
+  }
 
-    results << ["attributes" : attrsAndVals]
-    log.debug "Returning DEVICE: $results"
-    results
+  results << ["attributes" : attrsAndVals]
+  log.debug "Returning DEVICE: $results"
+  results
 }
 
 def pageSettings() {
-    //clear devices cache
+  //clear devices cache
   dynamicPage(name: "pageSettings", title: "", install: false, uninstall: false) {
     section("Available devices") {
       href "pageSelectDevices", title: "Available devices", description: "Tap here to select which devices are available to be returned by the API"
@@ -88,8 +88,7 @@ def pageSettings() {
 }
 
 private pageSelectDevices() {
-  state.deviceVersion = now().toString()
-    dynamicPage(name: "pageSelectDevices", title: "") {
+  dynamicPage(name: "pageSelectDevices", title: "") {
     section() {
       paragraph "Select the devices you want API to have access to."
     }
