@@ -18,18 +18,18 @@
 import groovy.json.JsonBuilder
 
 definition(
-  name: "Sensor API",
+  name: "Smartthings_exporter API",
   namespace: "kadaan",
   author: "Joel Baranick",
-  description: "Sensor API used by Smartthings_exporter to read sensor data.",
+  description: "API used by Smartthings_exporter to read sensor data.",
   category: "My Apps",
   iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
   iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
-  oauth: [displayName: "Device API", displayLink: ""])
+  oauth: [displayName: "Smartthings_exporter API", displayLink: ""])
 
 preferences {
   section() {
-    paragraph "Select the sensors you want API to have access to."
+    paragraph "Select the sensors you want the API to have access to."
   }
   section() {
   	input "sensors", "capability.sensor", multiple: true, title: "Which sensors?", required: true
@@ -59,7 +59,6 @@ mappings {
 def listSensors() {
   def result = []
   result << sensors.collect{getSensor(it)}
-  log.debug "Returning DEVICES: $result"
   result[0]
 }
 
@@ -76,6 +75,5 @@ private getSensor(sensor) {
   }
 
   results << ["attributes" : attrsAndVals]
-  log.debug "Returning DEVICE: $results"
   results
 }
