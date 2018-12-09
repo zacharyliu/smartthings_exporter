@@ -15,6 +15,8 @@
  *  Author: SmartThings
  */
 
+import groovy.transform.EqualsAndHashCode
+
 definition(
   name: "Smartthings_exporter API",
   namespace: "kadaan",
@@ -56,50 +58,88 @@ mappings {
 
 def listSensors() {
   def result = [:]
-  def enumValues = [:]
+  def strings = [:]
+  def map = []
   def sensorResults = []
-  sensorResults << sensors.collect{getSensor(enumValues, it)}
-  result << ["enumValues": enumValues]
-  result << ["sensors": sensorResults[0]]
+  sensorResults << getSensors(strings, map, sensors)
+  result << ["m": map]
+  result << ["s": sensorResults[0]]
   result
 }
 
-private getMapping(string_ordinal_map, ordinal_string_map, value) {
-  if (value instanceof String) {
-    def ordinal = ordinal_string_map.size()
-    if (!string_ordinal_map.containsKey(value)) {
-      ordinal_string_map << [(ordinal) : value]
-      string_ordinal_map << [(value) : ordinal]
-    }
-    return ordinal
-  } else {
-    return value
-  }
-}
-
-private isAllowed(attributeName) {
-  if (attributeName == "trackData") {
+private isAllowedSensor(sensorType) {
+  if (sensorType == "LAN Sonos Player") {
     return false
   }
   return true
 }
 
-private getSensor(enumValues, sensor) {
-  if (!sensor) return null
-  def results = [:]
-  ["id", "name", "displayName"].each {
-    results << [(it) : sensor."$it"]
+private getMappedString(strings, map, value) {
+  if (strings.containsKey(value)) {
+    return strings[value]
   }
+  def ordinal = strings.size()
+  strings[value] = ordinal
+  map << value
+  return ordinal
+}
 
-  def attrsAndVals = [:]
-  sensor.supportedAttributes?.each {
-    if (isAllowed(it.name)) { 
-      if (it.getDataType() == "ENUM" && !enumValues.containsKey(it.name)) {
-        enumValues << [(it.name) : it.getValues()]
-      }
-      attrsAndVals << [(it.name) : sensor.currentValue(it.name)]
+private getSensors(strings, map, sensors) {
+  def groupedSensors = sensors.groupBy({ [typeName:it.typeName, capabilities:it.capabilities.join(",")] })
+  groupedSensors.findResults{k, v -> getSensor(strings, map, v)}
+}
+
+private getSensor(strings, map, sensors) {
+  def sensor = sensors[0]
+  if (!isAllowedSensor(sensor.getTypeName())) return null
+  def results = []
+  results << getMappedString(strings, map, sensor.getName())
+  def size = sensors.size()
+  if (size == 1) {
+    def mappedValue = getMappedString(strings, map, sensor.getDisplayName())
+    mappedValue = -mappedValue
+    results << mappedValue
+  } else {
+    results << sensors.size()
+    sensors.each {sens ->
+      results << getMappedString(strings, map, sens.getDisplayName())
     }
   }
-  results << ["attributes" : attrsAndVals]
+  sensor.capabilities?.each {cap ->
+    cap.attributes?.each {attr ->
+      if (sensors.any{s -> s.currentValue(attr.name) != null}) {
+        def mappedAttr = getMappedString(strings, map, attr.name)
+        switch (attr.getDataType()) {
+          case "NUMBER":
+            results << mappedAttr
+			sensors.each {s -> 
+              results << s.currentValue(attr.name)
+            }
+            break
+          case "ENUM":
+          	def written_enum_values = [:]
+            mappedAttr = -mappedAttr
+            results << mappedAttr
+            def enumValues = attr.getValues()
+            results << enumValues.size()
+            sensors.each {s -> 
+              def value = s.currentValue(attr.name)
+		      enumValues.each {enumVal ->
+                def mappedValue = getMappedString(strings, map, enumVal)
+                if (value == enumVal) {
+                  written_enum_values << [(mappedValue): true]
+                  mappedValue = -mappedValue
+                  results << mappedValue
+                } else if (!written_enum_values.containsKey(mappedValue)) {
+                  written_enum_values << [(mappedValue): true]
+                  results << mappedValue
+                }
+              }
+            }
+            break
+        }
+      }
+    }
+  }
   results
 }
