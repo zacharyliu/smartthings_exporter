@@ -154,7 +154,7 @@ func NewExporter(oauthClient string, oauthToken *oauth2.Token) (*Exporter, error
 
 	_, verr := gosmart.GetDevices(client, endpoint)
 	if verr != nil {
-		plog.Fatalf("Error verifying connection to endpoints URI: %v\n", err)
+		plog.Fatalf("Error verifying connection to endpoints URI %v: %v\n", endpoint, err)
 	}
 
 	// Init our exporter.
@@ -178,7 +178,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	// Iterate over all devices and collect timeseries info.
 	devs, err := gosmart.GetDevices(e.client, e.endpoint)
 	if err != nil {
-		plog.Fatalf("Error reading list of devices: %v\n", err)
+		plog.Errorf("Error reading list of devices from %v: %v\n", e.endpoint, err)
 	}
 
 	for _, dev := range devs {
@@ -197,7 +197,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 				ch <- prometheus.MustNewConstMetric(metric.description, prometheus.GaugeValue, value, dev.ID, dev.DisplayName)
 			} else {
 				invalidMetric.Inc()
-				plog.Errorf("Cannot process sensor data for %s: %v", k, err)
+				plog.Errorf("Cannot process sensor data for %s (%v): %v", k, val, err)
 			}
 		}
 	}
@@ -237,6 +237,10 @@ func valueOneOf(v interface{}, options []string) (float64, error) {
 // valueFloat returns the float64 value of the value passed or
 // error if the value cannot be converted.
 func valueFloat(v interface{}) (float64, error) {
+	stringVal, ok := v.(string)
+	if ok && stringVal == "" {
+		return 0.0, nil
+	}
 	val, ok := v.(float64)
 	if !ok {
 		return 0.0, fmt.Errorf("invalid non floating-point argument %v", v)
