@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smartthings
+  labels:
+    app: smartthings
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: smartthings
+  template:
+    metadata:
+      labels:
+        app: smartthings
+    spec:
+      containers:
+      - name: smartthings
+        image: gcr.io/zachary-liu/smartthings_exporter
+        ports:
+        - containerPort: 9499
+        env:
+        - name: SMARTTHINGS_OAUTH_CLIENT
+          value: d5621f09-3075-461a-9348-c948b4a213cd
+        - name: SMARTTHINGS_OAUTH_TOKEN_FILE
+          value: /st-token/st-token.json
+        volumeMounts:
+        - mountPath: /st-token
+          name: st-token
+      volumes:
+      - name: st-token
+        secret:
+          secretName: st-token
