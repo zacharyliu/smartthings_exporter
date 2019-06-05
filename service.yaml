@@ -7,5 +7,6 @@ spec:
   selector:
     app: smartthings
   ports:
-  - protocol: TCP
+  - name: web
+    protocol: TCP
     port: 9499
