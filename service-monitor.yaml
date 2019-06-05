@@ -8,3 +8,4 @@ spec:
       app: smartthings
   endpoints:
   - port: web
+    interval: 10s
