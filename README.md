@@ -44,3 +44,16 @@ Now we can start Smartthings_exporter by running:
 ```
 $ smartthings_exporter --smartthings.oauth-client=<client_id> --smartthings.oauth-token.file=.sttoken
 ```
+
+# Prometheus Operator
+
+```bash
+kubectl port-forward service/prometheus-operator-prometheus 9090
+kubectl port-forward service/prometheus-operator-grafana 8080:80
+```
+
+Useful links:
+- https://coreos.com/blog/the-prometheus-operator.html
+- https://medium.com/faun/trying-prometheus-operator-with-helm-minikube-b617a2dccfa3
+- https://grafana.com/docs/features/datasources/prometheus/
+- https://blog.kubernauts.io/cloud-native-monitoring-with-prometheus-and-grafana-9c8003ab9c7
